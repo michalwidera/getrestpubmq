@@ -1,23 +1,22 @@
-#include <boost/program_options.hpp>
-#include <boost/system/error_code.hpp>
-#include <boost/property_tree/ptree.hpp>
-#include <boost/property_tree/json_parser.hpp>
-#include <boost/lexical_cast.hpp>
+#include <iostream>
+#include <sstream>
+#include <ctime>
+#include <chrono>
 
 #include <cpr/cpr.h>
 
 #include "mqtt/async_client.h"
 
-#include <iostream>
-#include <sstream>
-#include <ctime>
+#include <boost/system/error_code.hpp>
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/json_parser.hpp>
+#include <boost/lexical_cast.hpp>
 
 using namespace std;
 using namespace boost;
 using namespace cpr;
 
 std::string sApiKey;
-std::string sConfigFile;
 
 typedef boost::property_tree::ptree ptree ;
 
@@ -41,40 +40,15 @@ Note, that in order to use the API of the service one needs to create
 an account in the service and get API key. Creation of the account is free of charge.
 */
 
-const char* PAYLOADS[] = {
-    "{",
-    "\"id\": \"temperature\"",
-    "\"value\": 1.23",
-    "\"timestamp\": 123",
-    "}",
-    nullptr
-};
+const int durationInSeconds = 5;
 
 int main(int argc, char *argv[])
 {
+    chrono::time_point<chrono::system_clock> start, end;
+
     try
     {
-        namespace po = boost::program_options;
-        po::options_description desc("Allowed options");
-        desc.add_options()
-        ("apikey,a", po::value<string>(&sApiKey), "show this stream")
-        ("help,h", "show options")
-        ;
-        po::variables_map vm;
-        po::store(po::command_line_parser(argc, argv).options(desc).run(), vm);
-
-        po::notify(vm);
-
-        if (vm.count("apikey"))
-        {
-            cout << "apikey:" << sApiKey << endl;
-        }
-        if (vm.count("help"))
-        {
-            cerr << argv[0] << " - xtoy tool." << endl;
-            cerr << desc << endl;
-            return system::errc::success;
-        }
+        start = chrono::system_clock::now();
 
         Response r = Get(Url{"http://api.openweathermap.org/data/2.5/weather"},
         Parameters{
@@ -83,57 +57,41 @@ int main(int argc, char *argv[])
             {"mode","json"},
             {"appid",""}
         });
-        cout << r.url << endl; // http://www.httpbin.org/get?hello=world
 
         if (r.status_code >= 400) {
             cerr << "Error [" << r.status_code << "] making request" << endl;
             return system::errc::operation_not_permitted; // eq. 1 - General Catch
-        } else {
-            cout << "Request took:" << r.elapsed << endl;
-            cout << "Body:" << endl << r.text << endl;
-            cout << "Count:" << r.downloaded_bytes << endl;
-            cout << "-------------" << endl ;
-
-            std::stringstream strstream;
-            strstream << r.text ;
-
-            ptree pt ;
-            read_json(strstream, pt);
-            cout << "[" << pt.get("main.temp", "") << "]" << endl;
-
-            float temperature = boost::lexical_cast<float> (pt.get("main.temp", "")) ;
-            cout << "VALUE:" << temperature << endl ;
-            cout << "TIMESTAMP:" << (long long) time(NULL) << endl ;
-            cout << "TIMESTAMP:" << std::time(0) << endl ;
-
-            size_t i = 0;
-            while (PAYLOADS[i]) {
-                cout << PAYLOADS[i++] << endl;
-            }
-
-            std::stringstream ssvalue;
-            ssvalue << "\"value\": " << temperature;
-            std::stringstream sstimestamp;
-            sstimestamp << "\"timestamp\": " << std::time(0);
-
-            i = 0;
-            vector< string > payload ;
-            payload.push_back("{");
-            payload.push_back("\"id\": \"temperature\"");
-            payload.push_back(ssvalue.str());
-            payload.push_back(sstimestamp.str());
-            payload.push_back("}");
-
-            for(auto value: payload)  {
-                cout << value << endl;
-            }
         }
 
-        cout << "End cpr." << endl ;
+        assert( r.elapsed < durationInSeconds );
+
+        stringstream strstream;
+        strstream << r.text ;
+
+        ptree pt ;
+        read_json(strstream, pt);
+
+        float temperature = boost::lexical_cast<float> (pt.get("main.temp", "")) ;
+
+        stringstream ssvalue;
+        ssvalue << "\"value\": " << temperature;
+        stringstream sstimestamp;
+        sstimestamp << "\"timestamp\": " << time(0);
+
+        vector< string > payload ;
+        payload.push_back("{");
+        payload.push_back("\"id\": \"temperature\"");
+        payload.push_back(ssvalue.str());
+        payload.push_back(sstimestamp.str());
+        payload.push_back("}");
+
+        for(auto value: payload)  {
+            cout << value.c_str() << endl;
+        }
 
         // https://github.com/eclipse/paho.mqtt.cpp/blob/master/src/samples/topic_publish.cpp
 
-        const std::string address { "tcp://localhost:1883" };
+        const string address { "tcp://localhost:1883" };
         const int QOS = 1;
 
         mqtt::async_client cli(address, "");
@@ -150,9 +108,8 @@ int main(int argc, char *argv[])
             mqtt::topic top(cli, "temperature_warsaw", QOS);
             mqtt::token_ptr tok;
 
-            size_t i = 0;
-            while (PAYLOADS[i]) {
-                tok = top.publish(PAYLOADS[i++]);
+            for(auto value: payload) {
+                tok = top.publish(value.c_str());
             }
             tok->wait();	// Just wait for the last one to complete.
             cout << "OK" << endl;
@@ -167,6 +124,12 @@ int main(int argc, char *argv[])
             return system::errc::operation_not_permitted; // eq. 1 - General Catch;
         }
 
+        end = chrono::system_clock::now();
+        chrono::duration<double> elapsedSeconds = end - start;
+
+        assert( durationInSeconds - elapsedSeconds.count() > 0 );
+
+        this_thread::sleep_for( chrono::seconds(durationInSeconds) - elapsedSeconds );
     }
     catch (std::exception &e)
     {
