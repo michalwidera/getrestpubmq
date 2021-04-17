@@ -1,5 +1,8 @@
 #include <boost/program_options.hpp>
 #include <boost/system/error_code.hpp>
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/json_parser.hpp>
+#include <boost/lexical_cast.hpp>
 
 #include <cpr/cpr.h>
 
@@ -7,6 +10,7 @@
 
 #include <iostream>
 #include <sstream>
+#include <ctime>
 
 using namespace std;
 using namespace boost;
@@ -14,6 +18,8 @@ using namespace cpr;
 
 std::string sApiKey;
 std::string sConfigFile;
+
+typedef boost::property_tree::ptree ptree ;
 
 /*
 Write an application in C++, which makes REST calls to OpenWeatherMap online service
@@ -36,10 +42,11 @@ an account in the service and get API key. Creation of the account is free of ch
 */
 
 const char* PAYLOADS[] = {
-    "Hello World!",
-    "Hi there!",
-    "Is anyone listening?",
-    "Someone is always listening.",
+    "{",
+    "\"id\": \"temperature\"",
+    "\"value\": 1.23",
+    "\"timestamp\": 123",
+    "}",
     nullptr
 };
 
@@ -69,11 +76,38 @@ int main(int argc, char *argv[])
             return system::errc::success;
         }
 
-        Response r = Get(Url{"http://www.httpbin.org/get"},
-        Parameters{{"hello", "world"}});
+        Response r = Get(Url{"http://api.openweathermap.org/data/2.5/weather"},
+        Parameters{
+            {"q", "Warsaw"},
+            {"units","metric"},
+            {"mode","json"},
+            {"appid","KEY-GOES-HERE"}
+        });
         cout << r.url << endl; // http://www.httpbin.org/get?hello=world
-        cout << r.text << endl;
 
+        if (r.status_code >= 400) {
+            cerr << "Error [" << r.status_code << "] making request" << endl;
+            return system::errc::operation_not_permitted; // eq. 1 - General Catch
+        } else {
+            cout << "Request took:" << r.elapsed << endl;
+            cout << "Body:" << endl << r.text << endl;
+            cout << "Count:" << r.downloaded_bytes << endl;
+            cout << "-------------" << endl ;
+
+            std::stringstream strstream;
+            strstream << r.text ;
+
+            ptree pt ;
+            read_json(strstream, pt);
+            cout << "[" << pt.get("main.temp", "") << "]" << endl;
+
+            float temperature = boost::lexical_cast<float> (pt.get("main.temp", "")) ;
+            cout << "VALUE:" << temperature << endl ;
+            cout << "TIMESTAMP:" << (long long) time(NULL) << endl ;
+            cout << "TIMESTAMP:" << std::time(0) << endl ;
+        }
+
+        cout << "End cpr." << endl ;
 
         // https://github.com/eclipse/paho.mqtt.cpp/blob/master/src/samples/topic_publish.cpp
 
@@ -91,7 +125,7 @@ int main(int argc, char *argv[])
 
             cout << "\nPublishing messages..." << endl;
 
-            mqtt::topic top(cli, "test", QOS);
+            mqtt::topic top(cli, "temperature_warsaw", QOS);
             mqtt::token_ptr tok;
 
             size_t i = 0;
@@ -108,7 +142,7 @@ int main(int argc, char *argv[])
         }
         catch (const mqtt::exception& exc) {
             cerr << exc << endl;
-            return 1;
+            return system::errc::operation_not_permitted; // eq. 1 - General Catch;
         }
 
     }
