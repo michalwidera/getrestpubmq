@@ -14,33 +14,10 @@
 
 using namespace std;
 using namespace boost;
-using namespace cpr;
-
-std::string sApiKey;
 
 typedef boost::property_tree::ptree ptree ;
 
-/*
-Write an application in C++, which makes REST calls to OpenWeatherMap online service
-in order to read current weather conditions in Warsaw.
-The application should do it periodically (every 60 seconds) and every time it
-gets the fresh data, it should parse received JSON message and publish the
-current temperature in degrees of Celsius to local MQTT bus.
-Address of the service (API details for reference):
-https://openweathermap.org/api/one-call-api
-The output MQTT message should be published to the following MQTT topic:
-temperature_warsaw
-and should contain the following payload:
-{
-"id": "temperature",
-"value": <value of the temperature (FLOAT)>,
-"timestamp": <current unix timestamp (INTEGER)>
-}
-Note, that in order to use the API of the service one needs to create
-an account in the service and get API key. Creation of the account is free of charge.
-*/
-
-const int durationInSeconds = 5;
+const int durationInSeconds = 60;
 
 int main(int argc, char *argv[])
 {
@@ -48,88 +25,92 @@ int main(int argc, char *argv[])
 
     try
     {
-        start = chrono::system_clock::now();
+        while(true) {
+            start = chrono::system_clock::now();
 
-        Response r = Get(Url{"http://api.openweathermap.org/data/2.5/weather"},
-        Parameters{
-            {"q", "Warsaw"},
-            {"units","metric"},
-            {"mode","json"},
-            {"appid",""}
-        });
+            // https://whoshuu.github.io/cpr/introduction.html
 
-        if (r.status_code >= 400) {
-            cerr << "Error [" << r.status_code << "] making request" << endl;
-            return system::errc::operation_not_permitted; // eq. 1 - General Catch
-        }
+            cpr::Response r = cpr::Get(cpr::Url{"http://api.openweathermap.org/data/2.5/weather"},
+            cpr::Parameters{
+                {"q", "Warsaw"},
+                {"units","metric"},
+                {"mode","json"},
+                {"appid",""}
+            });
 
-        assert( r.elapsed < durationInSeconds );
-
-        stringstream strstream;
-        strstream << r.text ;
-
-        ptree pt ;
-        read_json(strstream, pt);
-
-        float temperature = boost::lexical_cast<float> (pt.get("main.temp", "")) ;
-
-        stringstream ssvalue;
-        ssvalue << "\"value\": " << temperature;
-        stringstream sstimestamp;
-        sstimestamp << "\"timestamp\": " << time(0);
-
-        vector< string > payload ;
-        payload.push_back("{");
-        payload.push_back("\"id\": \"temperature\"");
-        payload.push_back(ssvalue.str());
-        payload.push_back(sstimestamp.str());
-        payload.push_back("}");
-
-        for(auto value: payload)  {
-            cout << value.c_str() << endl;
-        }
-
-        // https://github.com/eclipse/paho.mqtt.cpp/blob/master/src/samples/topic_publish.cpp
-
-        const string address { "tcp://localhost:1883" };
-        const int QOS = 1;
-
-        mqtt::async_client cli(address, "");
-
-        cout << "  ...OK" << endl;
-
-        try {
-            cout << "\nConnecting..." << endl;
-            cli.connect()->wait();
-            cout << "  ...OK" << endl;
-
-            cout << "\nPublishing messages..." << endl;
-
-            mqtt::topic top(cli, "temperature_warsaw", QOS);
-            mqtt::token_ptr tok;
-
-            for(auto value: payload) {
-                tok = top.publish(value.c_str());
+            if (r.status_code != 200) {
+                cerr << "Error [" << r.status_code << "] making REST request" << endl;
+                return system::errc::operation_not_permitted; // eq. 1 - General Catch
             }
-            tok->wait();	// Just wait for the last one to complete.
-            cout << "OK" << endl;
 
-            // Disconnect
-            cout << "\nDisconnecting..." << endl;
-            cli.disconnect()->wait();
-            cout << "  ...OK" << endl;
+            // If time of fetching data from openwathermap takes more than assumed duration
+            // Entire process need to get another state - timeout.
+            // Until there is no such requirement is task - assert should cover this issue.
+
+            assert( r.elapsed < durationInSeconds );
+
+            // forming requested structure for shipping data via mqtt
+
+            stringstream strstream;
+            strstream << r.text ;
+
+            ptree pt ;
+            read_json(strstream, pt);
+
+            float temperature = boost::lexical_cast<float> (pt.get("main.temp", "")) ;
+
+            stringstream ssvalue;
+            ssvalue << "\"value\": " << temperature;
+            stringstream sstimestamp;
+            sstimestamp << "\"timestamp\": " << time(0);
+
+            vector< string > payload ;
+            payload.push_back("{");
+            payload.push_back("\"id\": \"temperature\"");
+            payload.push_back(ssvalue.str());
+            payload.push_back(sstimestamp.str());
+            payload.push_back("}");
+
+            // Source of this process could be found here:
+            // https://github.com/eclipse/paho.mqtt.cpp/blob/master/src/samples/topic_publish.cpp
+
+            const string address { "tcp://localhost:1883" };
+            const int QOS = 1;
+
+            mqtt::async_client cli(address, "");
+
+            try {
+                cli.connect()->wait();
+
+                mqtt::topic top(cli, "temperature_warsaw", QOS);
+                mqtt::token_ptr tok;
+
+                for(auto value: payload) {
+                    tok = top.publish(value.c_str());
+                }
+                tok->wait();	// Just wait for the last one to complete.
+
+                cli.disconnect()->wait();
+            }
+            catch (const mqtt::exception& exc) {
+                cerr << "Error [" << exc << "] making MQTT request" << endl;
+                return system::errc::operation_not_permitted; // eq. 1 - General Catch;
+            }
+
+            // To get more precise 60 duration we need to correct sleep time
+            // with time of sending of mqtt and fetching rest response.
+
+            end = chrono::system_clock::now();
+            chrono::duration<double> elapsedSeconds = end - start;
+
+            // If entire process of fetching data from openweathermap take more than
+            // assumed period - we need to cover this issue as out of scenario.
+            // Special case 'timeout' should be covered here.
+
+            assert( durationInSeconds - elapsedSeconds.count() > 0 );
+
+            this_thread::sleep_for( chrono::seconds(durationInSeconds) - elapsedSeconds );
         }
-        catch (const mqtt::exception& exc) {
-            cerr << exc << endl;
-            return system::errc::operation_not_permitted; // eq. 1 - General Catch;
-        }
-
-        end = chrono::system_clock::now();
-        chrono::duration<double> elapsedSeconds = end - start;
-
-        assert( durationInSeconds - elapsedSeconds.count() > 0 );
-
-        this_thread::sleep_for( chrono::seconds(durationInSeconds) - elapsedSeconds );
     }
     catch (std::exception &e)
     {
