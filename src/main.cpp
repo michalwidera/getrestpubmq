@@ -81,7 +81,7 @@ int main(int argc, char *argv[])
             {"q", "Warsaw"},
             {"units","metric"},
             {"mode","json"},
-            {"appid","KEY-GOES-HERE"}
+            {"appid",""}
         });
         cout << r.url << endl; // http://www.httpbin.org/get?hello=world
 
@@ -105,6 +105,28 @@ int main(int argc, char *argv[])
             cout << "VALUE:" << temperature << endl ;
             cout << "TIMESTAMP:" << (long long) time(NULL) << endl ;
             cout << "TIMESTAMP:" << std::time(0) << endl ;
+
+            size_t i = 0;
+            while (PAYLOADS[i]) {
+                cout << PAYLOADS[i++] << endl;
+            }
+
+            std::stringstream ssvalue;
+            ssvalue << "\"value\": " << temperature;
+            std::stringstream sstimestamp;
+            sstimestamp << "\"timestamp\": " << std::time(0);
+
+            i = 0;
+            vector< string > payload ;
+            payload.push_back("{");
+            payload.push_back("\"id\": \"temperature\"");
+            payload.push_back(ssvalue.str());
+            payload.push_back(sstimestamp.str());
+            payload.push_back("}");
+
+            for(auto value: payload)  {
+                cout << value << endl;
+            }
         }
 
         cout << "End cpr." << endl ;
