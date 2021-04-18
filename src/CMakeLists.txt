@@ -19,16 +19,11 @@ link_libraries(
 set(SOURCES_RTOY
     main.cpp
     restclinet.cpp
-   )
-
-set(SOURCES_RTEST
-    test.cpp
+    mqttclient.cpp
    )
 
 add_executable(rtoy ${SOURCES_RTOY})
-add_executable(rtest ${SOURCES_RTEST})
 
-target_link_libraries( rtest ${Boost_LIBRARIES}  ${CMAKE_THREAD_LIBS_INIT} -lrt -ldl -lpaho-mqttpp3 -lpaho-mqtt3as )
 target_link_libraries( rtoy ${Boost_LIBRARIES}  ${CMAKE_THREAD_LIBS_INIT} -lrt -ldl -lpaho-mqttpp3 -lpaho-mqtt3as )
 
 ADD_DEFINITIONS( "-DHAS_BOOST" )

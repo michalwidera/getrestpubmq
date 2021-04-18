@@ -1,8 +1,8 @@
-#ifndef REST_CLIENT_HPP
-#define REST_CLIENT_HPP
+#ifndef GPRM_REST_CLIENT_HPP
+#define GPRM_REST_CLIENT_HPP
 
 #include <string>
 
-std::string get_rest_response();
+std::string getRestResponse( std::string );
 
-#endif //REST_CLIENT_HPP
+#endif //GPRM_REST_CLIENT_HPP

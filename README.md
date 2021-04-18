@@ -30,7 +30,6 @@ __INSTALLATION__
 This tool requires few open source libraries.
 
 - Paho mqtt cpp / Paho mqtt c
-- Cpr - C++ Requests: Curl for People
 - Boost
 
 ___Boost___

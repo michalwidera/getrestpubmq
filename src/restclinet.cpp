@@ -8,15 +8,16 @@
 
 #include <cstdlib>
 #include <iostream>
-#include <string>
 #include <iomanip>
+
+#include "restclient.hpp"
 
 namespace beast = boost::beast; // from <boost/beast.hpp>
 namespace http = beast::http;   // from <boost/beast/http.hpp>
 namespace net = boost::asio;    // from <boost/asio.hpp>
 using tcp = net::ip::tcp;       // from <boost/asio/ip/tcp.hpp>
 
-std::string get_rest_response()
+std::string getRestResponse(std::string apikey)
 {
     std::string retValue { "" };
 
@@ -24,8 +25,18 @@ std::string get_rest_response()
     {
         auto const host = "api.openweathermap.org";
         auto const port = "80";
-        auto const target = "/data/2.5/weather?q=Warsaw&units=metric&mode=json&appid=11c0b553c31ac4ad64444579821b83fc";
         int version = 11;
+
+        std::vector<std::string> uriParametrs { "q=Warsaw", "units=metric", "mode=json"};
+
+        std::string target = "/data/2.5/weather?";
+
+        for (auto value : uriParametrs)
+        {
+            target += value + "&";
+        }
+
+        target += "appid=" + apikey;
 
         // The io_context is required for all I/O
         net::io_context ioc;
@@ -47,8 +58,6 @@ std::string get_rest_response()
         req.set(http::field::pragma, "no-cache");
         req.set(http::field::cache_control, "no-cache, no-store, must-revalidate");
         req.set(http::field::expires, "0");
-
-        // std::cerr << req << std::endl;
 
         // Send the HTTP request to the remote host
         http::write(stream, req);
@@ -81,7 +90,8 @@ std::string get_rest_response()
     }
     catch (std::exception const &e)
     {
-        std::cerr << "Error: " << e.what() << std::endl;
+        auto errorMessage = std::string("REST Error: ") + e.what();
+        throw std::runtime_error(errorMessage);
     }
     return retValue;
 }

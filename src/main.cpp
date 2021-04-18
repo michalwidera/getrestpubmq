@@ -8,10 +8,10 @@
 #include <ctime>
 #include <chrono>
 #include <fstream>
-
-#include "mqtt/async_client.h"
+#include <thread>
 
 #include "restclient.hpp"
+#include "mqttclient.hpp"
 
 typedef boost::property_tree::ptree ptree ;
 
@@ -44,16 +44,6 @@ int main(int argc, char *argv[])
         while(true) {
             start = std::chrono::system_clock::now();
 
-/*
-            cpr::Response r = cpr::Get(cpr::Url{"http://api.openweathermap.org/data/2.5/weather"},
-            cpr::Parameters{
-                {"q", "Warsaw"},
-                {"units","metric"},
-                {"mode","json"},
-                {"appid",apikey.c_str()}
-            });
-*/
-
             // If time of fetching data from openwathermap takes more than assumed duration
             // Entire process need to get another state - timeout.
             // Until there is no such requirement is task - assert should cover this issue.
@@ -61,7 +51,7 @@ int main(int argc, char *argv[])
             const int durationInSeconds = 60;
 
             std::stringstream strstream;
-            strstream << get_rest_response();
+            strstream << getRestResponse(apikey);
 
             ptree pt;
             read_json(strstream, pt);
@@ -90,31 +80,7 @@ int main(int argc, char *argv[])
             payload.push_back(sstimestamp.str());
             payload.push_back("}");
 
-            // MQTT ship data - source of this process could be found here:
-            // https://github.com/eclipse/paho.mqtt.cpp/blob/master/src/samples/topic_publish.cpp
-
-            const std::string address { "tcp://localhost:1883" };
-            const int QOS = 1;
-
-            mqtt::async_client cli(address, "");
-
-            try {
-                cli.connect()->wait();
-
-                mqtt::topic top(cli, "temperature_warsaw", QOS);
-                mqtt::token_ptr tok;
-
-                for(auto value: payload) {
-                    tok = top.publish(value.c_str());
-                }
-                tok->wait();	// Just wait for the last one to complete.
-
-                cli.disconnect()->wait();
-            }
-            catch (const mqtt::exception& exc) {
-                std::cerr << "Error [" << exc << "] making MQTT request" << std::endl;
-                return boost::system::errc::io_error; // eq. 5
-            }
+            shipPayloadToMqttBus(payload);
 
             // To get more precise 60 duration we need to correct sleep time
             // with time of sending of mqtt and fetching rest response.
