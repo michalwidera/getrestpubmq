@@ -18,7 +18,12 @@ using namespace boost;
 
 typedef boost::property_tree::ptree ptree ;
 
+// Requested time between fetch-publish procedures.
 const int durationInSeconds = 60;
+// Correct size of api.key file
+const int sizeOfApiKey = 32;
+// Respons from cpr::Get that shows correct fetch
+const int httpResponseOk = 200;
 
 int main(int argc, char *argv[])
 {
@@ -30,11 +35,13 @@ int main(int argc, char *argv[])
 
     ifstream ifs("api.key");
     string apikey((istreambuf_iterator<char>(ifs)), (istreambuf_iterator<char>()));
-    if ( apikey.empty() ) {
+    if (apikey.empty())
+    {
         cerr << "Please create api.key file (with apikey from openweathermap.org)" << endl;
         return system::errc::invalid_argument;
     }
-    if ( apikey.length() != 32 ) {
+    if (apikey.length() != sizeOfApiKey)
+    {
         // Please remove spaces or cr/lf form file - apikey should contain only 32 hexadecimal signs.
         cerr << "Incorrectly formed api.key file" << endl ;
         return system::errc::invalid_argument;
@@ -55,9 +62,14 @@ int main(int argc, char *argv[])
                 {"appid",apikey.c_str()}
             });
 
-            if (r.status_code != 200) {
+            // Due to fact that there is no defined action if case of web failure
+            // we are exiting from procedure with io_error message.
+            // There should considered another state in this process ie. connection_lost
+
+            if (r.status_code != httpResponseOk)
+            {
                 cerr << "Error [" << r.status_code << "] making REST request" << endl;
-                return system::errc::io_error; // eq. 1 - General Catch
+                return system::errc::io_error; // eq. 5
             }
 
             // If time of fetching data from openwathermap takes more than assumed duration
@@ -66,15 +78,31 @@ int main(int argc, char *argv[])
 
             assert( r.elapsed < durationInSeconds );
 
+            // Checking if openwathermap delivery is non empty and contains at least something
+            // that looks like json
+
+            assert(!r.text.empty());
+            assert(r.text[0] == '{');
+
             // forming requested structure for shipping data via mqtt
 
             stringstream strstream;
             strstream << r.text ;
 
-            ptree pt ;
+            ptree pt;
             read_json(strstream, pt);
 
-            float temperature = boost::lexical_cast<float> (pt.get("main.temp", "")) ;
+            string sTemperature(pt.get("main.temp", ""));
+
+            // We do not trust open service - it's better to fail task than ship incorrect value.
+            // if openweather map will change format of delivered data this assert should fail.
+
+            assert(!sTemperature.empty());
+
+            // There is another check hidden.
+            // if delivered data will not be in float number form this conversion will claim another error.
+
+            float temperature = boost::lexical_cast<float>(sTemperature);
 
             stringstream ssvalue;
             ssvalue << "\"value\": " << temperature;
