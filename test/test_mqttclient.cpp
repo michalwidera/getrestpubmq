@@ -12,5 +12,8 @@ using namespace std;
 
 BOOST_AUTO_TEST_CASE(check_shipPayloadToMqttBus)
 {
+    Payload_t payloadData;
+    payloadData.push_back("test string");
+    shipPayloadToMqttBus(payloadData);
     BOOST_CHECK(true);
 }

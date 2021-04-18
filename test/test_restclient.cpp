@@ -12,5 +12,6 @@ using namespace std;
 
 BOOST_AUTO_TEST_CASE(check_getRestResponse)
 {
+    // Stub for boost beast need here.
     BOOST_CHECK(true);
 }

@@ -12,18 +12,15 @@ FIND_PACKAGE( Boost COMPONENTS
     thread
     REQUIRED )
 
-MESSAGE(STATUS "Boost information:")
-MESSAGE(STATUS "Boost_INCLUDE_DIRS: ${Boost_INCLUDE_DIRS}")
-MESSAGE(STATUS "Boost_LIBRARY_DIRS: ${Boost_LIBRARY_DIRS}")
-MESSAGE(STATUS "Boost_LIBRARIES: ${Boost_LIBRARIES}")
-
 link_libraries(
     ${Boost_LIBRARIES}
 )
 
-INCLUDE_DIRECTORIES("${Boost_INCLUDE_DIR};${CMAKE_SOURCE_DIR}/test/stubs;${CMAKE_SOURCE_DIR}/src")
-ADD_DEFINITIONS( "-DHAS_BOOST" )
+INCLUDE_DIRECTORIES("${Boost_INCLUDE_DIR};${CMAKE_SOURCE_DIR}/test/stub;${CMAKE_SOURCE_DIR}/src")
+
 ADD_DEFINITIONS(-DBOOST_TEST_DYN_LINK)
+ADD_DEFINITIONS(-DBOOST_BIND_GLOBAL_PLACEHOLDERS)
+ADD_DEFINITIONS(-DHAS_BOOST)
 
 set(CMAKE_CURRENT_DATA_DIR ${CMAKE_SOURCE_DIR}/test/sandbox)
 
@@ -55,7 +52,7 @@ add_executable( test_restclient ${SOURCES_RESTCLIENT} )
 
 target_link_libraries( test_mgrapikey ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} -lrt -ldl -lboost_unit_test_framework )
 target_link_libraries( test_mgrpayload ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} -lrt -ldl -lboost_unit_test_framework )
-target_link_libraries( test_mqttclient ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} -lrt -ldl -lboost_unit_test_framework -lpaho-mqttpp3 -lpaho-mqtt3as )
+target_link_libraries( test_mqttclient ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} -lrt -ldl -lboost_unit_test_framework )
 target_link_libraries( test_restclient ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} -lrt -ldl -lboost_unit_test_framework )
 
 add_test(

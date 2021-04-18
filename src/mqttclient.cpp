@@ -6,7 +6,7 @@
 // MQTT ship data - source of this process could be found here:
 // https://github.com/eclipse/paho.mqtt.cpp/blob/master/src/samples/topic_publish.cpp
 
-void shipPayloadToMqttBus(std::vector<std::string> payload)
+void shipPayloadToMqttBus(Payload_t payload)
 {
     const std::string address{"tcp://localhost:1883"};
     const int QOS = 1;

@@ -16,6 +16,9 @@ link_libraries(
     ${Boost_LIBRARIES}
 )
 
+ADD_DEFINITIONS(-DBOOST_BIND_GLOBAL_PLACEHOLDERS)
+ADD_DEFINITIONS(-DHAS_BOOST)
+
 set(SOURCES_RTOY
     main.cpp
     restclient.cpp
@@ -27,5 +30,3 @@ set(SOURCES_RTOY
 add_executable(rtoy ${SOURCES_RTOY})
 
 target_link_libraries( rtoy ${Boost_LIBRARIES}  ${CMAKE_THREAD_LIBS_INIT} -lrt -ldl -lpaho-mqttpp3 -lpaho-mqtt3as )
-
-ADD_DEFINITIONS( "-DHAS_BOOST" )

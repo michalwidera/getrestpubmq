@@ -4,6 +4,8 @@
 #include <string>
 #include <vector>
 
-void shipPayloadToMqttBus(std::vector<std::string>);
+typedef std::vector<std::string> Payload_t;
+
+void shipPayloadToMqttBus(Payload_t);
 
 #endif //GRPM_MQTT_CLIENT_HPP
