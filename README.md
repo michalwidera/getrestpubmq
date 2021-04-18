@@ -27,10 +27,14 @@ Note, that in order to use the API of the service one needs to create an account
 
 __INSTALLATION__
 
+After downloading there need to create api.key file in main directory.
+
+**_NOTE:_** First, please create file api.key in main project directory and fill it with code from OpenWeatherMap account. Do not put enter at the end of line.
+
 This tool requires few open source libraries.
 I've chosen following two:
 
-- [Paho mqtt cpp](https://github.com/eclipse/paho.mqtt.cpp)  / [Paho mqtt c](https://github.com/eclipse/paho.mqtt.c)
+- [Paho mqtt cpp](https://github.com/eclipse/paho.mqtt.cpp) / [Paho mqtt c](https://github.com/eclipse/paho.mqtt.c)
 - [Boost](https://www.boost.org/)
 
 ___Boost___
@@ -73,14 +77,18 @@ $ cd ..
 #include "mqtt/async_client.h"
 ```
 
-__BUILD__
+__BUILD & FIRST RUN__
 
 First, step into project directory.
+Then call cmake, make
+And call executable - rtoy
+
 ```
 $ cd getrestpubmq
 $ cmake .
 ...
 $ make
+$ ./build/rtoy
 ```
 
 __RUNING & TESTING__
