@@ -29,4 +29,4 @@ set(SOURCES_RTOY
 
 add_executable(rtoy ${SOURCES_RTOY})
 
-target_link_libraries( rtoy ${Boost_LIBRARIES}  ${CMAKE_THREAD_LIBS_INIT} -lrt -ldl -lpaho-mqttpp3 -lpaho-mqtt3as )
+target_link_libraries( rtoy ${Boost_LIBRARIES}  ${CMAKE_THREAD_LIBS_INIT} -lrt -ldl -lpaho-mqttpp3 -lpaho-mqtt3a )

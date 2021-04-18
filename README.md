@@ -42,7 +42,7 @@ ___Boost___
 First, get boost and core build requirements from distribution repostiory (1.74 or higher).
 
 ```
-$ sudo apt-get -y install gcc cmake libboost-all-dev make build-essential libcurl4-openssl-dev curl
+$ sudo apt-get -y install gcc cmake libboost-all-dev make build-essential libcurl4-openssl-dev curl doxygen
 ```
 
 ___Paho MQTT___
@@ -55,7 +55,7 @@ Install Paho C library in system structure
 ```
 $ git clone https://github.com/eclipse/paho.mqtt.c.git
 $ cd paho.mqtt.c
-$ cmake -Bbuild -H. -DPAHO_ENABLE_TESTING=OFF -DPAHO_BUILD_STATIC=ON -DPAHO_WITH_SSL=ON -DPAHO_HIGH_PERFORMANCE=ON
+$ cmake -Bbuild -H. -DPAHO_ENABLE_TESTING=OFF -DPAHO_BUILD_STATIC=ON -DPAHO_WITH_SSL=OFF -DPAHO_HIGH_PERFORMANCE=ON
 $ sudo cmake --build build/ --target install
 $ sudo ldconfig
 $ cd ..
@@ -66,13 +66,14 @@ Install Paho C++ library in system structure
 ```
 $ git clone https://github.com/eclipse/paho.mqtt.cpp
 $ cd paho.mqtt.cpp
-$ cmake -Bbuild -H. -DPAHO_BUILD_STATIC=ON -DPAHO_BUILD_DOCUMENTATION=TRUE -DPAHO_BUILD_SAMPLES=TRUE
+$ cmake -Bbuild -H. -DPAHO_BUILD_STATIC=ON -DPAHO_BUILD_DOCUMENTATION=TRUE -DPAHO_BUILD_SAMPLES=TRUE -DPAHO_WITH_SSL=OFF
 $ sudo cmake --build build/ --target install
 $ sudo ldconfig
 $ cd ..
 ```
 
-**_NOTE:_** Without Paho MQTT libraries following line of code will fail:
+**_NOTE:_** Without Paho MQTT libraries following line of code will fail. On Ubuntu LTS 20.04 I need to set -DPAHO_WITH_SSL=OFF
+
 ```
 #include "mqtt/async_client.h"
 ```
@@ -122,8 +123,7 @@ ___Sandbox test___
 I've been testing this code with mosquitto MQTT broker.
 Please install for testing purposes:
 ```
-$ sudo apt install mosquitto
-$ sudo apt-get install mosquitto-clients
+$ sudo apt install mosquitto mosquitto-clients
 ```
 
 Start in first terminal mosquitto broker.
@@ -159,3 +159,5 @@ $ mosquitto_sub -t temperature_warsaw
 ```
 
 **_NOTE:_** Use Ctrl+C to stop rtoy, mosquitto and mosquitto_sub
+
+**_NOTE:_** This solution has been tested following distributions: WSL2 and Ubuntu LTS 20.4
