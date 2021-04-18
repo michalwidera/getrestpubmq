@@ -15,11 +15,13 @@ The output MQTT message should be published to the following MQTT topic:
 
 temperature_warsaw and should contain the following payload:
 
+```
 {
 "id": "temperature",
 "value": <value of the temperature (FLOAT)>,
 "timestamp": <current unix timestamp (INTEGER)>
 }
+```
 
 Note, that in order to use the API of the service one needs to create an account in the service and get API key. Creation of the account is free of charge.
 
@@ -74,5 +76,55 @@ $cd ..
 
 __BUILD__
 
-I've added to the build fetching of Cpr Library.
+First, step into project directory.
+```
+$cd getrestpubmq
+$cmake CMakeLists.txt
+...
+$make
+```
 
+During this step Cpr library will be fetched from github and builded inside projects directories.
+
+__RUNING & TESTING__
+
+I've been testing this code with mosquitto MQTT broker.
+Please install for testing purposes:
+```
+$sudo apt install mosquitto
+$sudo apt-get install mosquitto-clients
+```
+
+Start in first terminal mosquitto broker.
+And in second terminal subsribe topic.
+```
+Term 1> $mosquitto
+Term 2> $mosquitto_sub -t temperature_warsaw
+```
+
+Create file in project directory with api key from open weather map.
+This file name is api.key and need 32 hexadecimal signs.
+No enter at the end no extra spaces or tabs.
+Then if build process has been successful we can launch in project directory
+```
+./build/rtoy
+```
+
+We can observe results on mosquitto_sub terminal.
+Every 60 seconds temperature measuremt are presented on screen.
+mosquitto presents connection and disconnection client actions.
+```
+$ mosquitto_sub -t temperature_warsaw
+{
+"id": "temperature"
+"value": 6.2
+"timestamp": 1618706116
+}
+{
+"id": "temperature"
+"value": 6.19
+"timestamp": 1618706176
+}
+```
+
+**_NOTE:_** Use Ctrl+C to stop rtoy, mosquitto and mosquitto_sub
