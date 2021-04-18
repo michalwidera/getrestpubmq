@@ -20,6 +20,8 @@ set(SOURCES_RTOY
     main.cpp
     restclinet.cpp
     mqttclient.cpp
+    mgrapikey.cpp
+    mgrpayload.cpp
    )
 
 add_executable(rtoy ${SOURCES_RTOY})
