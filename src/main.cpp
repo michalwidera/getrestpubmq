@@ -18,20 +18,13 @@ using namespace boost;
 
 typedef boost::property_tree::ptree ptree ;
 
-// Requested time between fetch-publish procedures.
-const int durationInSeconds = 60;
-// Correct size of api.key file
-const int sizeOfApiKey = 32;
-// Respons from cpr::Get that shows correct fetch
-const int httpResponseOk = 200;
-
 int main(int argc, char *argv[])
 {
     chrono::time_point<chrono::system_clock> start, end;
 
     // Notice: api.key should contain api key from openweathermap.org
-    // There's shoun't be enter at the end of file.
-    // only hexadecimal digits from delivered api key from web service
+    // There's shoudn't be enter at the end of file.
+    // only hexadecimal 32 digits from delivered api key from web service
 
     ifstream ifs("api.key");
     string apikey((istreambuf_iterator<char>(ifs)), (istreambuf_iterator<char>()));
@@ -40,10 +33,12 @@ int main(int argc, char *argv[])
         cerr << "Please create api.key file (with apikey from openweathermap.org)" << endl;
         return system::errc::invalid_argument;
     }
+
+    const int sizeOfApiKey = 32;
+
     if (apikey.length() != sizeOfApiKey)
     {
-        // Please remove spaces or cr/lf form file - apikey should contain only 32 hexadecimal signs.
-        cerr << "Incorrectly formed api.key file" << endl ;
+        cerr << "Malformed api.key file" << endl ;
         return system::errc::invalid_argument;
     }
 
@@ -52,6 +47,7 @@ int main(int argc, char *argv[])
         while(true) {
             start = chrono::system_clock::now();
 
+            // exmaple from:
             // https://whoshuu.github.io/cpr/introduction.html
 
             cpr::Response r = cpr::Get(cpr::Url{"http://api.openweathermap.org/data/2.5/weather"},
@@ -66,6 +62,8 @@ int main(int argc, char *argv[])
             // we are exiting from procedure with io_error message.
             // There should considered another state in this process ie. connection_lost
 
+            const int httpResponseOk = 200;
+
             if (r.status_code != httpResponseOk)
             {
                 cerr << "Error [" << r.status_code << "] making REST request" << endl;
@@ -75,6 +73,8 @@ int main(int argc, char *argv[])
             // If time of fetching data from openwathermap takes more than assumed duration
             // Entire process need to get another state - timeout.
             // Until there is no such requirement is task - assert should cover this issue.
+
+            const int durationInSeconds = 60;
 
             assert( r.elapsed < durationInSeconds );
 
@@ -95,11 +95,11 @@ int main(int argc, char *argv[])
             string sTemperature(pt.get("main.temp", ""));
 
             // We do not trust open service - it's better to fail task than ship incorrect value.
-            // if openweather map will change format of delivered data this assert should fail.
+            // if openweather map will change format of delivered data - this assert should fail.
 
             assert(!sTemperature.empty());
 
-            // There is another check hidden.
+            // There is another check here.
             // if delivered data will not be in float number form this conversion will claim another error.
 
             float temperature = boost::lexical_cast<float>(sTemperature);
@@ -116,7 +116,7 @@ int main(int argc, char *argv[])
             payload.push_back(sstimestamp.str());
             payload.push_back("}");
 
-            // Source of this process could be found here:
+            // MQTT ship data - source of this process could be found here:
             // https://github.com/eclipse/paho.mqtt.cpp/blob/master/src/samples/topic_publish.cpp
 
             const string address { "tcp://localhost:1883" };
