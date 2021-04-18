@@ -18,7 +18,7 @@ link_libraries(
 
 set(SOURCES_RTOY
     main.cpp
-    restclinet.cpp
+    restclient.cpp
     mqttclient.cpp
     mgrapikey.cpp
     mgrpayload.cpp

@@ -4,6 +4,8 @@
 #include <string>
 #include <vector>
 
-std::vector<std::string> createPayload(std::string jsonInText);
+typedef std::vector<std::string> Payload_t;
+
+Payload_t createPayload(std::string jsonInText);
 
 #endif //GRPM_MGR_PAYLOAD_HPP

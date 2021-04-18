@@ -30,7 +30,7 @@ int main(int argc, char *argv[])
             end = std::chrono::system_clock::now();
             std::chrono::duration<double> elapsedSeconds = end - start;
 
-            // If entire process of fetching data from openweathermap take more than
+            // If entire process of fetching data from openweathermap takes more than
             // assumed period - we need to cover this issue as out of scenario.
             // Special case 'timeout' should be covered here.
 
