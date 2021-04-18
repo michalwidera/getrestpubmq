@@ -3,7 +3,6 @@
 #include <boost/lexical_cast.hpp>
 
 #include <sstream>
-#include <assert.h>
 
 #include "mgrpayload.hpp"
 
