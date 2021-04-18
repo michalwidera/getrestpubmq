@@ -10,13 +10,11 @@ void shipPayloadToMqttBus(Payload_t payload)
 {
     const std::string address{"tcp://localhost:1883"};
     const int QOS = 1;
-
     mqtt::async_client cli(address, "");
 
     try
     {
         cli.connect()->wait();
-
         mqtt::topic top(cli, "temperature_warsaw", QOS);
         mqtt::token_ptr tok;
 
@@ -24,8 +22,8 @@ void shipPayloadToMqttBus(Payload_t payload)
         {
             tok = top.publish(value.c_str());
         }
-        tok->wait(); // Just wait for the last one to complete.
 
+        tok->wait(); // Just wait for the last one to complete.
         cli.disconnect()->wait();
     }
     catch (const mqtt::exception &exc)

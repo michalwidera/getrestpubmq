@@ -3,30 +3,31 @@
 
 #include <string>
 
-namespace mqtt {
+namespace mqtt
+{
 
     struct topic;
     struct token;
 
-    typedef token *token_ptr;
+    typedef token* token_ptr;
 
     struct token
     {
-        void wait(){};
+        void wait() {};
     } token_stub;
 
     struct async_client
     {
-        async_client(std::string, std::string){};
+        async_client(std::string, std::string) {};
         token_ptr connect() { return &token_stub; };
         token_ptr disconnect() { return &token_stub; };
     };
 
     struct topic
     {
-        topic(){};
-        topic(async_client v1){};
-        topic(async_client v1, std::string v2, int v3){};
+        topic() {};
+        topic(async_client v1) {};
+        topic(async_client v1, std::string v2, int v3) {};
         token_ptr publish(std::string) { return &token_stub; };
     };
 

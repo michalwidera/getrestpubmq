@@ -26,9 +26,7 @@ std::string getRestResponse(std::string apikey)
         auto const host = "api.openweathermap.org";
         auto const port = "80";
         int version = 11;
-
         std::vector<std::string> uriParametrs { "q=Warsaw", "units=metric", "mode=json"};
-
         std::string target = "/data/2.5/weather?";
 
         for (auto value : uriParametrs)
@@ -37,20 +35,15 @@ std::string getRestResponse(std::string apikey)
         }
 
         target += "appid=" + apikey;
-
         // The io_context is required for all I/O
         net::io_context ioc;
-
         // These objects perform our I/O
         tcp::resolver resolver(ioc);
         beast::tcp_stream stream(ioc);
-
         // Look up the domain name
         auto const results = resolver.resolve(host, port);
-
         // Make the connection on the IP address we get from a lookup
         stream.connect(results);
-
         // Set up an HTTP GET request message
         http::request<http::string_body> req{http::verb::get, target, version};
         req.set(http::field::host, host);
@@ -58,24 +51,17 @@ std::string getRestResponse(std::string apikey)
         req.set(http::field::pragma, "no-cache");
         req.set(http::field::cache_control, "no-cache, no-store, must-revalidate");
         req.set(http::field::expires, "0");
-
         // Send the HTTP request to the remote host
         http::write(stream, req);
-
         // This buffer is used for reading and must be persisted
         beast::flat_buffer buffer;
-
         // Declare a container to hold the response
         http::response<http::dynamic_body> res;
-
         // Receive the HTTP response
         http::read(stream, buffer, res);
-
         std::string body{boost::asio::buffers_begin(res.body().data()),
-                         boost::asio::buffers_end(res.body().data())};
-
+            boost::asio::buffers_end(res.body().data())};
         retValue = body;
-
         // Gracefully close the socket
         beast::error_code ec;
         stream.socket().shutdown(tcp::socket::shutdown_both, ec);
@@ -93,5 +79,6 @@ std::string getRestResponse(std::string apikey)
         auto errorMessage = std::string("REST Error: ") + e.what();
         throw std::runtime_error(errorMessage);
     }
+
     return retValue;
 }

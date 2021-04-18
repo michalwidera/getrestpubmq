@@ -7,7 +7,6 @@ std::string loadApikey()
     // Notice: api.key should contain api key from openweathermap.org
     // There's shoudn't be enter at the end of file.
     // only hexadecimal 32 digits from delivered api key from web service
-
     std::ifstream ifs("api.key");
     std::string apikey((std::istreambuf_iterator<char>(ifs)), (std::istreambuf_iterator<char>()));
 

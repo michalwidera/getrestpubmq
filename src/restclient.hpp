@@ -3,6 +3,6 @@
 
 #include <string>
 
-std::string getRestResponse( std::string );
+std::string getRestResponse(std::string);
 
 #endif //GPRM_REST_CLIENT_HPP
