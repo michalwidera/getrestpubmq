@@ -28,13 +28,14 @@ Note, that in order to use the API of the service one needs to create an account
 __INSTALLATION__
 
 This tool requires few open source libraries.
+I've chosen following two:
 
 - Paho mqtt cpp / Paho mqtt c
 - Boost
 
 ___Boost___
 
-First get boost and core build requirements from distribution repostiory (1.67 or higher).
+First, get boost and core build requirements from distribution repostiory (1.67 or higher).
 
 ```
 $ sudo apt-get -y install gcc cmake libboost-all-dev make build-essential libcurl4-openssl-dev curl
@@ -72,7 +73,6 @@ $ cd ..
 #include "mqtt/async_client.h"
 ```
 
-
 __BUILD__
 
 First, step into project directory.
@@ -83,9 +83,33 @@ $ cmake .
 $ make
 ```
 
-During this step Cpr library will be fetched from github and builded inside projects directories.
-
 __RUNING & TESTING__
+
+__Unit test__
+
+Project containt Unit Test coverage.
+
+Issuing make should got:
+
+```
+$ make test
+Running tests...
+Test project /home/michal/getrestpubmq
+    Start 1: ut-test_mgrapikey
+1/4 Test #1: ut-test_mgrapikey ................   Passed    0.00 sec
+    Start 2: ut-test_mgrpayload
+2/4 Test #2: ut-test_mgrpayload ...............   Passed    0.00 sec
+    Start 3: ut-test_mqttclient
+3/4 Test #3: ut-test_mqttclient ...............   Passed    0.00 sec
+    Start 4: ut-test_restclient
+4/4 Test #4: ut-test_restclient ...............   Passed    0.00 sec
+
+100% tests passed, 0 tests failed out of 4
+
+Total Test time (real) =   0.02 sec
+```
+
+___Sandbox test___
 
 I've been testing this code with mosquitto MQTT broker.
 Please install for testing purposes:
@@ -115,13 +139,13 @@ mosquitto presents connection and disconnection client actions.
 ```
 $ mosquitto_sub -t temperature_warsaw
 {
-"id": "temperature"
-"value": 6.2
+"id": "temperature",
+"value": 6.2,
 "timestamp": 1618706116
 }
 {
-"id": "temperature"
-"value": 6.19
+"id": "temperature",
+"value": 6.19,
 "timestamp": 1618706176
 }
 ```

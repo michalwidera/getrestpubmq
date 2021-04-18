@@ -7,8 +7,6 @@
 
 #include "mgrpayload.hpp"
 
-#include <iostream>
-
 typedef boost::property_tree::ptree ptree;
 
 Payload_t createPayload(std::string jsonInText)
@@ -35,12 +33,6 @@ Payload_t createPayload(std::string jsonInText)
     payload.push_back(ssvalue.str());
     payload.push_back(sstimestamp.str());
     payload.push_back("}");
-    int i = 0;
-
-    for (auto v : payload)
-    {
-        std::cout << ++i << " " <<  v << std::endl;
-    }
 
     return payload;
 }
