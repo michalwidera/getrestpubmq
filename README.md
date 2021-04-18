@@ -38,7 +38,7 @@ ___Boost___
 First get boost and core build requirements from distribution repostiory (1.67 or higher).
 
 ```
-$ sudo apt-get -y install gcc cmake libboost-all-dev make build-essential
+$ sudo apt-get -y install gcc cmake libboost-all-dev make build-essential libcurl4-openssl-dev curl
 ```
 
 ___Paho MQTT___
@@ -79,7 +79,7 @@ __BUILD__
 First, step into project directory.
 ```
 $ cd getrestpubmq
-$ cmake CMakeLists.txt
+$ cmake .
 ...
 $ make
 ```
