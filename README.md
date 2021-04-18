@@ -30,12 +30,12 @@ __INSTALLATION__
 This tool requires few open source libraries.
 I've chosen following two:
 
-- Paho mqtt cpp / Paho mqtt c
-- Boost
+- [Paho mqtt cpp](https://github.com/eclipse/paho.mqtt.cpp)  / [Paho mqtt c](https://github.com/eclipse/paho.mqtt.c)
+- [Boost](https://www.boost.org/)
 
 ___Boost___
 
-First, get boost and core build requirements from distribution repostiory (1.67 or higher).
+First, get boost and core build requirements from distribution repostiory (1.74 or higher).
 
 ```
 $ sudo apt-get -y install gcc cmake libboost-all-dev make build-essential libcurl4-openssl-dev curl
