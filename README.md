@@ -161,3 +161,7 @@ $ mosquitto_sub -t temperature_warsaw
 **_NOTE:_** Use Ctrl+C to stop rtoy, mosquitto and mosquitto_sub
 
 **_NOTE:_** This solution has been tested following distributions: WSL2 and Ubuntu LTS 20.4
+
+Author: Michał Widera, 41-800 Zabrze, Poland, michal@widera.com.pl
+
+https://github.com/michalwidera/getrestpubmq (private)
