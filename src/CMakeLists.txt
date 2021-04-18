@@ -11,14 +11,11 @@ FetchContent_Declare(cpr GIT_REPOSITORY https://github.com/whoshuu/cpr.git GIT_T
 set(cpr_BUILD_TESTS OFF)
 FetchContent_MakeAvailable(cpr)
 
+#Unfortunatelly this takes too long to fetch and build to make this usable as example.
 #FetchContent_Populate(mqtt GIT_REPOSITORY https://github.com/redboltz/mqtt_cpp.git GIT_TAG HEAD SOURCE_DIR mqtt) # the commit hash for head 16.04.2021
 #set(mqtt_BUILD_TESTS OFF)
 
 FIND_PACKAGE( Boost COMPONENTS
-    filesystem
-    program_options
-    chrono
-    date_time
     system
     thread
     REQUIRED )

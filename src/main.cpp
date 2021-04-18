@@ -2,6 +2,7 @@
 #include <sstream>
 #include <ctime>
 #include <chrono>
+#include <fstream>
 
 #include <cpr/cpr.h>
 
@@ -23,6 +24,22 @@ int main(int argc, char *argv[])
 {
     chrono::time_point<chrono::system_clock> start, end;
 
+    // Notice: api.key should contain api key from openweathermap.org
+    // There's shoun't be enter at the end of file.
+    // only hexadecimal digits from delivered api key from web service
+
+    ifstream ifs("api.key");
+    string apikey((istreambuf_iterator<char>(ifs)), (istreambuf_iterator<char>()));
+    if ( apikey.empty() ) {
+        cerr << "Please create api.key file (with apikey from openweathermap.org)" << endl;
+        return system::errc::invalid_argument;
+    }
+    if ( apikey.length() != 32 ) {
+        // Please remove spaces or cr/lf form file - apikey should contain only 32 hexadecimal signs.
+        cerr << "Incorrectly formed api.key file" << endl ;
+        return system::errc::invalid_argument;
+    }
+
     try
     {
         while(true) {
@@ -35,12 +52,12 @@ int main(int argc, char *argv[])
                 {"q", "Warsaw"},
                 {"units","metric"},
                 {"mode","json"},
-                {"appid",""}
+                {"appid",apikey.c_str()}
             });
 
             if (r.status_code != 200) {
                 cerr << "Error [" << r.status_code << "] making REST request" << endl;
-                return system::errc::operation_not_permitted; // eq. 1 - General Catch
+                return system::errc::io_error; // eq. 1 - General Catch
             }
 
             // If time of fetching data from openwathermap takes more than assumed duration
@@ -94,7 +111,7 @@ int main(int argc, char *argv[])
             }
             catch (const mqtt::exception& exc) {
                 cerr << "Error [" << exc << "] making MQTT request" << endl;
-                return system::errc::operation_not_permitted; // eq. 1 - General Catch;
+                return system::errc::io_error; // eq. 5
             }
 
             // To get more precise 60 duration we need to correct sleep time
