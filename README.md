@@ -1,5 +1,5 @@
 # getrestpubmq
-Small example of get rest and publish mmqt in loop
+Small example of get rest and publish mmqt in loop. This was the past task for technical scan.
 
 __TASK__
 
@@ -164,4 +164,4 @@ $ mosquitto_sub -t temperature_warsaw
 
 Author: Michał Widera, 41-800 Zabrze, Poland, michal@widera.com.pl
 
-https://github.com/michalwidera/getrestpubmq (private)
+https://github.com/michalwidera/getrestpubmq
